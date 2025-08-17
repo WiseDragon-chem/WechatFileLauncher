@@ -1,0 +1,156 @@
+from PyQt5.QtWidgets import (
+    QDialog, QVBoxLayout, QTabWidget, QWidget, QFormLayout,
+    QLineEdit, QSpinBox, QDoubleSpinBox, QPushButton, QDialogButtonBox,
+    QColorDialog, QCheckBox, QFileDialog
+)
+from PyQt5.QtGui import QColor, QPalette
+from PyQt5.QtCore import Qt
+from pathlib import Path
+from ..settings import settings_manager, DEFAULT_SETTINGS
+
+class SettingsDialog(QDialog):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("应用设置")
+        self.setMinimumWidth(450)
+        self.setModal(True)
+
+        # store all editor buttons
+        self.editors = []
+
+        main_layout = QVBoxLayout(self)
+
+        # tab pages: for every group of settings
+        self.tabs = QTabWidget(self)
+        main_layout.addWidget(self.tabs)
+
+        self.setup_ui()
+
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+        main_layout.addWidget(button_box)
+
+    def setup_ui(self):
+        """
+        dynamically create ui elements based on DEFAULT_SETTINGS
+        """
+        groups = {}
+
+        for key, default_value in DEFAULT_SETTINGS.items():
+
+            # analyze the key for its group name
+            if "/" in key:
+                group_name, setting_name = key.split("/", 1)
+            else:
+                group_name, setting_name = "general", key # to "general" group if this doesn't belong to any group
+
+            if group_name not in groups:
+                # new tab page
+                tab_page = QWidget()
+                form_layout = QFormLayout(tab_page)
+                self.tabs.addTab(tab_page, group_name.capitalize())
+                groups[group_name] = form_layout
+
+            current_value = settings_manager.get(key, _type=type(default_value))
+            label_text = setting_name.replace('_', ' ').capitalize()
+            
+            editor = None
+
+            if isinstance(default_value, bool):
+                editor = QCheckBox()
+                editor.setChecked(current_value)
+            elif isinstance(default_value, int):
+                editor = QSpinBox()
+                editor.setRange(-10000, 10000)
+                editor.setValue(current_value)
+            elif isinstance(default_value, float):
+                editor = QDoubleSpinBox()
+                editor.setRange(-10000.0, 10000.0)
+                editor.setDecimals(2)
+                editor.setValue(current_value)
+            elif isinstance(default_value, QColor):
+                editor = self._create_color_button(current_value)
+            elif isinstance(default_value, str) and setting_name.endswith('路径'):
+                editor = self._create_file_button(current_value)
+            elif isinstance(default_value, str):
+                editor = QLineEdit(current_value)
+            
+            if editor:
+                self.editors.append((key, editor))
+                groups[group_name].addRow(label_text, editor)
+
+    def _create_file_button(self, initial_path: Path):
+        button = QPushButton('选择路径')
+        button.setProperty('fileSelection', str(initial_path))
+        button.clicked.connect(lambda: self._on_file_button_clicked(button))
+        return button
+        
+    def _on_file_button_clicked(self, button: QPushButton):
+        initial_path = button.property('fileSelection')
+        new_path = QFileDialog.getOpenFileName(self, '选择路径', initial_path)
+        if new_path:
+            button.setProperty('fileSelection', new_path)
+
+    def _create_color_button(self, initial_color: QColor):
+        """
+        create a color choice button
+        """
+        button = QPushButton(initial_color.name())
+        button.setProperty("currentColor", initial_color)
+        self._update_button_style(button, initial_color)
+
+        button.clicked.connect(lambda: self._on_color_button_clicked(button))
+        return button
+
+    def _update_button_style(self, button, color: QColor):
+        button.setText(color.name())
+        button.setStyleSheet(f"background-color: {color.name()};")
+        palette = button.palette()
+        if color.lightness() < 128:
+            palette.setColor(QPalette.ButtonText, Qt.white)
+        else:
+            palette.setColor(QPalette.ButtonText, Qt.black)
+        button.setPalette(palette)
+
+    def _on_color_button_clicked(self, button):
+        """
+        open the color dialog when color button is clicked
+        """
+        current_color = button.property("currentColor")
+        new_color = QColorDialog.getColor(current_color, self, "选择颜色")
+        if new_color.isValid():
+            button.setProperty("currentColor", new_color)
+            self._update_button_style(button, new_color)
+    
+    def accept(self):
+        """
+        when "OK" is clicked, save all the changed settings and set it to settings_manager
+        """
+        keys_to_set = []
+        values_to_set = []
+
+        for key, editor in self.editors:
+            if isinstance(editor, QCheckBox):
+                value = editor.isChecked()
+            elif isinstance(editor, QSpinBox) or isinstance(editor, QDoubleSpinBox):
+                value = editor.value()
+            elif isinstance(editor, QLineEdit):
+                value = editor.text()
+            elif isinstance(editor, QPushButton) and editor.property("currentColor"):
+                value = editor.property("currentColor")
+            elif isinstance(editor, QPushButton) and editor.property("fileSelection"):
+                value = editor.property("fileSelection")
+            else:
+                continue
+            
+            value_type = type(DEFAULT_SETTINGS[key])
+            if value != settings_manager.get(key, type=value_type):
+                keys_to_set.append(key)
+                values_to_set.append(value)
+        
+        if keys_to_set:
+            settings_manager.set(keys_to_set, values_to_set)
+
+        super().accept()
