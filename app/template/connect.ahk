@@ -1,10 +1,10 @@
 #Requires AutoHotkey v2
 
-winTitle := "微信"  ; 窗口标题，可根据需要修改
+winTitle := "微信"  
 hwnd := WinExist(winTitle)
 if hwnd {
-    WinActivate(hwnd)             ; 激活窗口
-    WinSetAlwaysOnTop(true, hwnd) ; 设置置顶
+    WinActivate(hwnd)             
+    WinSetAlwaysOnTop(true, hwnd)
 } else {
     MsgBox "未找到微信窗口！"
     Return

@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (QApplication, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, 
                              QLabel, QTextEdit, QFileDialog, QMenuBar)
-import time, asyncio
+import time
 from ..utils import set_color
 from ..core import ServiceManager
 from ..settings import settings_manager
@@ -65,12 +65,12 @@ class MainWindow(QWidget):
         if self.start_stop_button.text() == "启动":
             self.start_stop_button.setText("停止")
             self.start_stop_button.setStyleSheet('background-color: red')
-            self.output_area.append(set_color('程序已停止...', 'red'))
+            self.output_area.append(set_color('程序已启动...', 'green'))
             logger.debug('Start program')
-            # 在这里添加启动逻辑
+            self.start_launch_photo()
         else:
             self.start_stop_button.setText("启动")
-            self.output_area.append(set_color('程序已启动...', 'green'))
+            self.output_area.append(set_color('程序已停止...', 'red'))
             self.start_stop_button.setStyleSheet('background-color: #75FC69')
             logger.debug('Stop program')
             # 在这里添加停止逻辑
@@ -106,8 +106,11 @@ class MainWindow(QWidget):
         compile_path = "C:\\Program Files\\AutoHotkey\\v2\\AutoHotkey64.exe"  ##TODO: 换回settings
         self.service_manager.set_compiler_path(compile_path)
         self.service_manager.try_connection()
-        # loop = asyncio.get_event_loop()
-        # asyncio.ensure_future(self.service_manager.try_connection(), loop=loop)
+
+    def start_launch_photo(self):
+        compile_path = "C:\\Program Files\\AutoHotkey\\v2\\AutoHotkey64.exe"  ##TODO: 换回settings
+        self.service_manager.set_compiler_path(compile_path)
+        self.service_manager.launch_photos()
 
     def open_settings_window(self):
         dialog = SettingsDialog(self)
