@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QApplication, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, 
-                             QLabel, QTextEdit, QFileDialog, QMenuBar)
+                             QLabel, QTextEdit, QFileDialog, QMenuBar, QMessageBox)
 import time
 from ..utils import set_color
 from ..core import ServiceManager
@@ -94,6 +94,7 @@ class MainWindow(QWidget):
     def refresh_ouput_area(self, message_type: str, message: str):
         if message_type == 'error':
             self.output_area.append(set_color(f'错误：{message}'))
+            _ = QMessageBox.critical(self, '错误', message, buttons= QMessageBox.Ok)
         elif message_type == 'warning':
             self.output_area.append(set_color(f'警告：{message}', 'yellow'))
         elif message_type == 'info':
