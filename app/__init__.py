@@ -11,7 +11,7 @@ class Application(QApplication):
         super().__init__(argv)
 
         self.setApplicationName("WechatPhotoLauncher")
-        self.setOrganizationName("wise_dragon")
+        self.setOrganizationName("WiseDragon")
 
         log_dir: Path = Path(QStandardPaths.writableLocation(QStandardPaths.AppDataLocation))
         self.setup_logging(log_dir)

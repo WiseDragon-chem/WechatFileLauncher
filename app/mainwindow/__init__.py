@@ -102,13 +102,14 @@ class MainWindow(QWidget):
             self.output_area.append(message)
 
     def try_connention(self):
-        # compile_path = settings_manager.get("AutoHotkey编译器路径", _type=str)
-        compile_path = "C:\\Program Files\\AutoHotkey\\v2\\AutoHotkey64.exe"  ##TODO: 换回settings
+        compile_path = settings_manager.get("AutoHotkey编译器路径", _type=str)
+        # compile_path = "C:\\Program Files\\AutoHotkey\\v2\\AutoHotkey64.exe"  ##TODO: 换回settings
         self.service_manager.set_compiler_path(compile_path)
         self.service_manager.try_connection()
 
     def start_launch_photo(self):
-        compile_path = "C:\\Program Files\\AutoHotkey\\v2\\AutoHotkey64.exe"  ##TODO: 换回settings
+        # compile_path = "C:\\Program Files\\AutoHotkey\\v2\\AutoHotkey64.exe"  ##TODO: 换回settings
+        compile_path = settings_manager.get("AutoHotkey编译器路径", _type=str)
         self.service_manager.set_compiler_path(compile_path)
         self.service_manager.launch_photos()
 

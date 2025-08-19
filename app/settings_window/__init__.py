@@ -91,7 +91,7 @@ class SettingsDialog(QDialog):
         initial_path = button.property('fileSelection')
         new_path = QFileDialog.getOpenFileName(self, '选择路径', initial_path)
         if new_path:
-            button.setProperty('fileSelection', new_path)
+            button.setProperty('fileSelection', str(new_path[0]))
 
     def _create_color_button(self, initial_color: QColor):
         """
@@ -146,7 +146,7 @@ class SettingsDialog(QDialog):
                 continue
             
             value_type = type(DEFAULT_SETTINGS[key])
-            if value != settings_manager.get(key, type=value_type):
+            if value != settings_manager.get(key, _type=value_type):
                 keys_to_set.append(key)
                 values_to_set.append(value)
         

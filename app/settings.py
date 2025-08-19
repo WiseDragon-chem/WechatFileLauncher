@@ -4,7 +4,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 DEFAULT_SETTINGS = {
-    "AutoHotkey编译器路径": 'None'
+    "AutoHotkey编译器路径": '',
 }
 
 class SettingsManager(QObject):
